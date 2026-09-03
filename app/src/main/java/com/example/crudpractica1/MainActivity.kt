@@ -17,11 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.crudpractica1.Data.Equipo
-import com.example.crudpractica1.Data.MokApiService
+import com.example.crudpractica1.Data.RetrofitClient
 import com.example.crudpractica1.ui.theme.CrudPractica1Theme
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,14 +35,8 @@ class MainActivity : ComponentActivity() {
 
                 val scope = rememberCoroutineScope()
 
-                // Configuración de Retrofit y API
-                val api = remember {
-                    Retrofit.Builder()
-                        .baseUrl("https://6a98910e7160beda22930d9a.mockapi.io/")
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                        .create(MokApiService::class.java)
-                }
+                // Instancia limpia usando el objeto RetrofitClient
+                val api = remember { RetrofitClient.apiService }
 
                 // Función para cargar los equipos desde MockAPI
                 fun cargarDatos() {
@@ -65,7 +57,7 @@ class MainActivity : ComponentActivity() {
                         @OptIn(ExperimentalMaterial3Api::class)
                         TopAppBar(title = { Text("CRUD Equipos - MockAPI") })
                     },
-                    // BOTÓN FLOTANTE "+" QUE PIDIÓ EL PROFESOR (Sirve para limpiar campos / nuevo registro)
+                    // Botón flotante para limpiar y preparar un nuevo registro
                     floatingActionButton = {
                         FloatingActionButton(
                             onClick = {
@@ -109,9 +101,9 @@ class MainActivity : ComponentActivity() {
                                     try {
                                         val equipo = Equipo(nombre = nombre, pais = pais)
                                         if (idEditando == null) {
-                                            api.crearEquipo(equipo) // CREATE
+                                            api.crearEquipo(equipo) // CREATE (POST)
                                         } else {
-                                            api.actualizarEquipo(idEditando!!, equipo) // UPDATE
+                                            api.actualizarEquipo(idEditando!!, equipo) // UPDATE (PUT)
                                         }
                                         // Limpiar formulario y recargar lista
                                         nombre = ""
@@ -154,7 +146,9 @@ class MainActivity : ComponentActivity() {
                             items(listaEquipos) { equipo ->
                                 Card(modifier = Modifier.fillMaxWidth()) {
                                     Row(
-                                        modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                        modifier = Modifier
+                                            .padding(16.dp)
+                                            .fillMaxWidth(),
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
